@@ -1,0 +1,54 @@
+# Define the VBM in service position if the mono is out of service
+record(ai, "$(P)Y_IN_SERVICE_POS") {
+  field(DESC, "VBM in service nominal Y pos. (no mono)")
+  field(EGU,  "mm")
+  field(VAL,  "0")
+  field(LOPR, "-5.0")
+  field(HOPR, "5.0")
+  field(PREC, "2")
+  
+  info(autosaveFields, "VAL")
+}
+
+record(bi, "$(P)IN_SERVICE") {
+  field(DESC, "VBM in service status")
+  field(ZNAM, "OUT_OF_SERVICE")
+  field(ONAM, "IN_SERVICE")
+}
+
+# Calculate if the mirror is in service if the monochromator is 
+# out of service
+record(calc, "$(P)IN_SERVICE_CALC_NO_MONO") {
+  field(DESC, "VBM in service calculation (no mono)")
+  field(INPA, "$(VBM_Y=MCTVBM01:HEIGHT).RBV CPP")
+  field(INPB, "$(P)Y_IN_SERVICE_POS CPP")
+  field(C,    "1.0")
+  field(CALC, "ABS(A-B)<C")
+  field(PINI, "YES")
+
+  info(autosaveFields, "C")
+}
+
+# Calculate if the mirror is in service if the monochromator is 
+# in service
+record(calc, "$(P)IN_SERVICE_CALC_WITH_MONO") {
+  field(DESC, "VBM in service calculation (with mono)")
+  field(INPA, "$(VBM_Y=MCTVBM01:HEIGHT).RBV CPP")
+  field(INPB, "$(MONO_Y2=MCTMONO01MOT03).RBV CPP")
+  field(C,    "1.0")
+  field(CALC, "ABS(A-B)<C")
+  field(PINI, "YES")
+
+  info(autosaveFields, "C")
+}
+
+# Select the appropriate mirror status based on the mono status
+record(calcout, "$(P)IN_SERVICE_CALC") {
+  field(DESC, "VBM in service calculation")
+  field(INPA, "$(P)IN_SERVICE_CALC_NO_MONO CPP")
+  field(INPB, "$(P)IN_SERVICE_CALC_WITH_MONO CPP")
+  field(INPC, "$(MONO=MCTMONO01:)IN_SERVICE CPP")
+  field(CALC, "C?B:A")
+  field(OUT,  "$(P)IN_SERVICE PP")
+  field(PINI, "YES")
+}
